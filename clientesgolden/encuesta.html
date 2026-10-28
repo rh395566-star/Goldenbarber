@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conoce tu look ideal | Golden Barber</title>
+  <meta name="description" content="Responde tres preguntas y descubre el corte que va contigo.">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Ajustes de la encuesta (funcionan aunque style.css esté desactualizado) */
+    [hidden] { display: none !important; }
+
+    button.btn, button.reiniciar, .otra { font-family: inherit; cursor: pointer; }
+    button.btn { border: 0; }
+    button.reiniciar { background: none; }
+
+    .quiz:has([name="estilo"]:checked) .final { display: block; }
+
+    .otra {
+      align-self: flex-start;
+      padding: 8px 18px;
+      background: none;
+      border: 1px solid var(--line);
+      border-radius: 980px;
+      font-size: .82rem;
+      color: var(--muted);
+      transition: color .2s, border-color .2s;
+    }
+    .otra:hover { color: var(--text); border-color: var(--accent); }
+
+    .aviso { margin-top: 14px; font-size: .9rem; color: var(--accent-light); }
+
+    /* Resultado: foto completa y más grande */
+    .quiz { max-width: 920px; }
+
+    .resultado.visible { display: grid; }
+    .resultado { grid-template-columns: 1.2fr 1fr; }
+
+    .resultado .foto {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: auto;
+      min-height: 280px;
+      padding: 0;
+      background: #0d0d0f;
+    }
+
+    .resultado .foto img {
+      position: static;
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 85vh;
+      min-height: 0;
+      object-fit: contain;
+    }
+
+    .resultado .foto span { padding: 20px; }
+
+    @media (max-width: 700px) {
+      .resultado { grid-template-columns: 1fr; }
+      .resultado .foto { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <header class="nav">
+    <a href="index.html" class="brand">Golden Barber</a>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="index.html#cita" class="pill-small">Agendar</a>
+    </nav>
+  </header>
+
+  <!-- ENCUESTA -->
+  <section class="section encuesta">
+    <h2>Conoce tu <span class="dorado">look ideal</span></h2>
+    <p class="lead">Tres preguntas rápidas. Un corte hecho a tu medida.</p>
+
+    <div class="quiz">
+      <div class="progreso" aria-hidden="true"><i></i><i></i><i></i></div>
+
+      <!-- PASO 1 -->
+      <fieldset class="paso p1">
+        <legend><small>01</small> ¿Cómo te gusta traer el cabello?</legend>
+        <div class="opciones">
+          <label class="op"><input type="radio" name="largo" value="corto"><span><b>Corto</b>Limpio, fresco y listo en segundos</span></label>
+          <label class="op"><input type="radio" name="largo" value="medio"><span><b>Medio</b>Con cuerpo, sin pasarte</span></label>
+          <label class="op"><input type="radio" name="largo" value="largo"><span><b>Largo a tijera</b>Fluye, se mueve y tiene personalidad</span></label>
+        </div>
+      </fieldset>
+
+      <!-- PASO 2 -->
+      <fieldset class="paso p2">
+        <legend><small>02</small> ¿Cómo es tu cabello por naturaleza?</legend>
+        <div class="opciones">
+          <label class="op"><input type="radio" name="textura" value="liso"><span><b>Liso</b>Cae recto y obediente</span></label>
+          <label class="op"><input type="radio" name="textura" value="ondulado"><span><b>Ondulado</b>Ondas con carácter</span></label>
+          <label class="op"><input type="radio" name="textura" value="chino"><span><b>Chino</b>Rizos con volumen</span></label>
+        </div>
+      </fieldset>
+
+      <!-- PASO 3 -->
+      <fieldset class="paso p3">
+        <legend><small>03</small> ¿Cómo lo llevas en tu día a día?</legend>
+        <div class="opciones">
+          <label class="op"><input type="radio" name="estilo" value="peinado"><span><b>Peinado</b>Arreglado y con intención</span></label>
+          <label class="op"><input type="radio" name="estilo" value="despeinado"><span><b>Despeinado</b>Natural, sin complicaciones</span></label>
+        </div>
+      </fieldset>
+
+      <!-- BOTÓN FINAL (aparece al responder las 3 preguntas) -->
+      <div class="final">
+        <button type="button" class="btn" id="btn-ver">Ver mi look ideal</button>
+        <p class="aviso" id="aviso" role="alert" hidden>Responde las tres preguntas para ver tu look ideal.</p>
+      </div>
+
+      <!-- RESULTADO: lo llena el script de abajo -->
+      <article class="resultado" id="resultado" aria-live="polite">
+        <div class="foto">
+          <img id="res-img" alt="" hidden>
+          <span id="res-msg" hidden></span>
+        </div>
+        <div class="info">
+          <p class="etiqueta">Este es tu look ideal</p>
+          <h3 id="res-nombre">Tu corte ideal</h3>
+          <p id="res-desc"></p>
+          <p>Es el corte que va contigo. Agendemos tu cita y te lo hacemos.</p>
+          <a class="btn" id="res-wa" href="https://wa.me/528115259472" target="_blank" rel="noopener">Agendar este corte</a>
+          <button type="button" class="otra" id="btn-otra" hidden>↻ Ver otra foto de este look</button>
+        </div>
+      </article>
+
+      <button type="button" class="reiniciar" id="btn-reiniciar">↺ Volver a empezar</button>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="footer">
+    <a href="index.html" class="volver">← Volver al inicio</a>
+    <p class="copy">© 2026 Golden Barber</p>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+
+    /* ============================================================
+       AJUSTES
+       ============================================================ */
+    const DEPURAR = false;  // true = muestra mensajes técnicos si una foto no carga
+    const WHATSAPP = "528115259472";
+
+    // Carpeta de tus fotos. Debe estar junto a encuesta.html.
+    const CARPETAS = ["tu corte ideal es/"];
+
+    // Extensiones que se prueban, ya que no sabemos cuál tiene cada foto.
+    const EXTENSIONES = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".JPG", ".JPEG", ".PNG"];
+
+    /* ============================================================
+       LISTA DE LOOKS (aquí cambias las recomendaciones)
+       Clave = largo-textura-estilo
+       fotos: nombres de archivo SIN la extensión
+       prestada: true = esa combinación no tiene foto propia y usa
+                 la más cercana. Quita la marca cuando tengas la foto.
+       nombre y descripcion son opcionales: si faltan, se arman con las respuestas.
+       ============================================================ */
+    const LOOKS = {
+      /* ---------- CORTO ---------- */
+      "corto-liso-peinado": {
+        fotos: ["corto liso peinado", "corto liso peinado 17"]
+      },
+      "corto-liso-despeinado": {
+        fotos: ["corto liso despeinado", "corto liso despeinado 10", "corto liso despeinado 18", "corto liso despeinado2"]
+      },
+      "corto-ondulado-peinado": {
+        fotos: ["corto ondulado peinado"]
+      },
+      "corto-ondulado-despeinado": {      // PRESTADA: mismo largo y textura, otro estilo
+        prestada: true,
+        fotos: ["corto ondulado peinado"]
+      },
+      "corto-chino-peinado": {            // PRESTADA: no hay corto chino; se usa el medio chino
+        prestada: true,
+        fotos: ["medio chino peinado"]
+      },
+      "corto-chino-despeinado": {         // PRESTADA: no hay corto chino; se usa el medio chino
+        prestada: true,
+        fotos: ["medio chino peinado"]
+      },
+
+      /* ---------- MEDIO ---------- */
+      "medio-liso-peinado": {
+        fotos: ["medio liso peinado", "medio liso peinado 13", "medio liso peinado 17"]
+      },
+      "medio-liso-despeinado": {
+        fotos: ["medio liso despeinado", "medio liso despeinado 11", "medio liso despeinado 19"]
+      },
+      "medio-ondulado-peinado": {
+        fotos: ["medio ondulado peinado"]
+      },
+      "medio-ondulado-despeinado": {
+        fotos: ["medio ondulado despeinado", "medio ondulado despeinado 3", "medio ondulado despeinado 12", "medio ondulado despeinado 15", "medio ondulado despeinado 16"]
+      },
+      "medio-chino-peinado": {
+        fotos: ["medio chino peinado"]
+      },
+      "medio-chino-despeinado": {         // PRESTADA: mismo largo y textura, otro estilo
+        prestada: true,
+        fotos: ["medio chino peinado"]
+      },
+
+      /* ---------- LARGO A TIJERA ---------- */
+      "largo-liso-peinado": {
+        fotos: ["a tijera liso peinado"]
+      },
+      "largo-liso-despeinado": {
+        fotos: ["a tijera liso despeinado"]
+      },
+      "largo-ondulado-peinado": {
+        fotos: ["a tijera ondulado peinado", "largo ondulado peinado 18"]
+      },
+      "largo-ondulado-despeinado": {
+        fotos: ["largo a tijera ondulado despeinado"]
+      },
+      "largo-chino-peinado": {
+        fotos: ["a tijera chino peinado"]
+      },
+      "largo-chino-despeinado": {
+        fotos: ["a tijera chino despeinado"]
+      }
+    };
+
+    const TEXTO = {
+      corto: "corto", medio: "medio", largo: "largo a tijera",
+      liso: "liso", ondulado: "ondulado", chino: "chino",
+      peinado: "peinado", despeinado: "despeinado"
+    };
+
+    /* ============================================================
+       ELEMENTOS DE LA PÁGINA
+       ============================================================ */
+    const $ = function (id) { return document.getElementById(id); };
+    const quiz = document.querySelector(".quiz");
+    const btnVer = $("btn-ver");
+    const btnOtra = $("btn-otra");
+    const btnReiniciar = $("btn-reiniciar");
+    const aviso = $("aviso");
+    const resultado = $("resultado");
+    const resImg = $("res-img");
+    const resMsg = $("res-msg");
+    const resNombre = $("res-nombre");
+    const resDesc = $("res-desc");
+    const resWa = $("res-wa");
+
+    let fotosActuales = [];
+    let indice = 0;
+    let peticion = 0;   // evita mezclar fotos si se pulsa muy rápido
+
+    /* ============================================================
+       FUNCIONES
+       ============================================================ */
+    function respuesta(nombre) {
+      const marcada = document.querySelector('input[name="' + nombre + '"]:checked');
+      return marcada ? marcada.value : null;
+    }
+
+    function mostrarTarjeta() {
+      resultado.classList.add("visible");
+      resultado.style.display = "grid";
+    }
+
+    function ocultarTarjeta() {
+      resultado.classList.remove("visible");
+      resultado.style.display = "none";
+    }
+
+    // Prueba el nombre tal cual, en minúsculas y con la primera letra en mayúscula
+    function variantes(base) {
+      const lista = [
+        base,
+        base.toLowerCase(),
+        base.charAt(0).toUpperCase() + base.slice(1).toLowerCase()
+      ];
+      return lista.filter(function (v, i) { return lista.indexOf(v) === i; });
+    }
+
+    // Prueba cada carpeta, variante de nombre y extensión hasta encontrar la foto
+    function cargarFoto(base, alCargar, alFallar) {
+      const intentos = [];
+      CARPETAS.forEach(function (carpeta) {
+        variantes(base).forEach(function (nombre) {
+          EXTENSIONES.forEach(function (ext) {
+            intentos.push(encodeURI(carpeta + nombre + ext));
+          });
+        });
+      });
+      let i = 0;
+      function probar() {
+        if (i >= intentos.length) { alFallar(); return; }
+        const ruta = intentos[i++];
+        const prueba = new Image();
+        prueba.onload = function () { alCargar(ruta); };
+        prueba.onerror = probar;
+        prueba.src = ruta;
+      }
+      probar();
+    }
+
+    function mostrarMensaje(texto) {
+      resImg.hidden = true;
+      resMsg.textContent = texto;
+      resMsg.hidden = false;
+    }
+
+    function mostrarFoto(nombreCorte) {
+      const base = fotosActuales[indice];
+      const miPeticion = ++peticion;
+      cargarFoto(
+        base,
+        function (ruta) {
+          if (miPeticion !== peticion) return;
+          resImg.src = ruta;
+          resImg.alt = nombreCorte;
+          resImg.hidden = false;
+          resMsg.hidden = true;
+        },
+        function () {
+          if (miPeticion !== peticion) return;
+          if (DEPURAR) {
+            mostrarMensaje("No se encontró la foto «" + base + "» en la carpeta «" + CARPETAS[0] +
+              "». Revisa que la carpeta esté junto a encuesta.html y que el nombre coincida.");
+          } else {
+            mostrarMensaje("No pudimos cargar la foto de este look. Escríbenos y te mostramos opciones.");
+          }
+        }
+      );
+    }
+
+    function verResultado() {
+      const largo = respuesta("largo");
+      const textura = respuesta("textura");
+      const estilo = respuesta("estilo");
+
+      if (!largo || !textura || !estilo) {
+        aviso.hidden = false;
+        return;
+      }
+      aviso.hidden = true;
+
+      const clave = largo + "-" + textura + "-" + estilo;
+      const look = LOOKS[clave] || { fotos: [] };
+
+      const nombre = look.nombre ||
+        "Look " + TEXTO[largo] + " · " + TEXTO[textura] + " · " + TEXTO[estilo];
+      const descripcion = look.descripcion ||
+        "Una recomendación pensada para tu cabello " + TEXTO[largo] + ", " +
+        TEXTO[textura] + " y " + TEXTO[estilo] + ".";
+
+      resNombre.textContent = nombre;
+      resDesc.textContent = descripcion;
+
+      const mensaje = "Hola Golden Barber, hice la encuesta y mi look ideal es: " +
+        nombre + ". Quiero agendar una cita.";
+      resWa.href = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(mensaje);
+
+      fotosActuales = look.fotos;
+      if (fotosActuales.length === 0) {
+        mostrarMensaje("Todavía estamos preparando la foto de este look. Agenda tu cita y lo diseñamos juntos.");
+        btnOtra.hidden = true;
+      } else {
+        indice = Math.floor(Math.random() * fotosActuales.length);
+        mostrarFoto(nombre);
+        btnOtra.hidden = fotosActuales.length < 2;
+      }
+
+      mostrarTarjeta();
+      resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function otraFoto() {
+      if (fotosActuales.length < 2) return;
+      indice = (indice + 1) % fotosActuales.length;
+      mostrarFoto(resNombre.textContent);
+    }
+
+    function reiniciar() {
+      quiz.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
+      ocultarTarjeta();
+      aviso.hidden = true;
+      peticion++;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ============================================================
+       EVENTOS
+       ============================================================ */
+    btnVer.addEventListener("click", verResultado);
+    btnOtra.addEventListener("click", otraFoto);
+    btnReiniciar.addEventListener("click", reiniciar);
+
+    // Si cambia una respuesta, el resultado anterior se oculta
+    quiz.addEventListener("change", function () {
+      ocultarTarjeta();
+      aviso.hidden = true;
+    });
+  })();
+  </script>
+</body>
+</html>
